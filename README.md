@@ -1,6 +1,6 @@
 # Obsidian Book Clipper
 
-![demo](https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60)
+https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
 
 
 With this plugin, you can grab book information from:
