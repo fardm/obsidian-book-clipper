@@ -1,14 +1,16 @@
 # Obsidian Book Clipper
 
-![demo](demo.mp4)
+<video width="100%" controls autoplay muted loop>
+  <source src="demo.mp4" type="video/mp4">
+  Your browser does not support the video.
+</video>
+
 
 With this plugin, you can grab book information from:
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [taaghche.com](https://taaghche.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [fidibo.com](https://fidibo.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fbehkhaan.ir%2f" width="18px" height="18px" align="center"> [behkhaan.ir](https://behkhaan.ir/)
 
-
-⚠️ This plugin is designed for personal use only, not for bulk data collection or commercial purposes.
 
 <br>
 
@@ -20,6 +22,9 @@ With this plugin, you can grab book information from:
 | author | {{author}} |
 | pages  | {{pages}}  |
 | cover  | {{cover}}  |
+
+
+⚠️ This plugin is designed for personal use only, not for bulk data collection or commercial purposes.
 
 <br>
 
