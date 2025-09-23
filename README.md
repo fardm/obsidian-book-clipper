@@ -1,9 +1,6 @@
 # Obsidian Book Clipper
 
-<video width="100%" controls autoplay muted loop>
-  <source src="demo.mp4" type="video/mp4">
-  Your browser does not support the video.
-</video>
+![demo](https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60)
 
 
 With this plugin, you can grab book information from:
