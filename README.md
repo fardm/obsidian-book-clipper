@@ -1,94 +1,101 @@
-# Obsidian Sample Plugin
+# Obsidian Book Clipper
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+With this plugin, you can grab book information from:
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [taaghche.com](https://taaghche.com/)
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [fidibo.com](https://fidibo.com/)
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fbehkhaan.ir%2f" width="18px" height="18px" align="center"> [behkhaan.ir](https://behkhaan.ir/)
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+⚠️ This plugin is designed for personal use only, not for bulk data collection or commercial purposes.
 
-## First time developing plugins?
+<br>
 
-Quick starting guide for new plugin devs:
+**Available Variables**
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+| data   | Variable           |
+| ------ | ------------------ |
+| title  | {{title}}  |
+| author | {{author}} |
+| pages  | {{pages}}  |
+| cover  | {{cover}}  |
 
-## Releasing new releases
+<br>
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## 🛠️ Usage
+1. Create a template note (e.g. `book-template.md`) and insert the variables above in the properties or content.
+2. Place the template in a folder like `templates`.
+3. Create a folder for your books (e.g. `my books`).
+4. In plugin settings:
+    - **Template note path** → `templates/book-template`
+    - **Save folder path** → `my books`
+5. Open the **Command Palette** and run `add book from url`.
+6. Enter the book link and confirm.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+<br>
 
-## Adding your plugin to the community plugin list
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
 
-## How to use
+# افزونه Book Clipper
+با استفاده از این افزونه می توانید اطلاعات هر کتابی را از سایت های زیر استخراج کرده و در ابسیدین ذخیره کنید:
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [طاقچه](https://taaghche.com/)
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [فیدیبو](https://fidibo.com/)
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fbehkhaan.ir%2f" width="18px" height="18px" align="center"> [بهخوان](https://behkhaan.ir/)
 
-## Manually installing the plugin
+<br>
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+**متغیر‌های قابل دریافت**
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint ./src/`
+| Data        | Variable              |
+| ----------- | ------------------ |
+| عنوان کتاب  | {{title}}  |
+| نویسنده     | {{author}} |
+| تعداد صفحات | {{pages}}  |
+| تصویر کتاب  | {{cover}}  |
 
-## Funding URL
 
-You can include funding URLs where people who use your plugin can financially support it.
+<br>
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+## 📥 روش نصب
+تا زمانی که پلاگین به Community Plugins اضافه نشده باید به صورت دستی آن را نصب کنید. برای اینکار می توانید از دو روش استفاده کنید.
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+**روش اول: دانلود مستقیم فایلها**
 
-If you have multiple URLs, you can also do:
+در همین صفحه روی Releases کلیک کنید. فایل های main.js، styles.css و manifest.json را دانلود کنید. یک پوشه جدید با نام Book Clipper در مسیر `your vault/.obsidain/plugins` بسازید.
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
+حالا ابسیدین را باز کنید. از بخش Community Plugins، پلاگین Book Clipper به پلاگین های شما اضافه شده است، آن را فعال کنید.
 
-## API Documentation
+<br>
 
-See https://github.com/obsidianmd/obsidian-api
+**روش دوم: استفاده از پلاگین brat**
+
+پلاگین [brat](https://github.com/TfTHacker/obsidian42-brat) را از Community Plugins نصب کنید. از تنظیمات پلاگین روی دکمه add beta plugin کلیک کنید. لینک این ریپازتوری را کپی کرده و در فیلد آن وارد کنید. آخرین ورژن را انتخاب کرده و روی add plugin کلیک کنید. 
+
+
+<br>
+
+## 🛠️ روش استفاده 
+1. یک یادداشت به عنوان تمپلیت بسازید (مثلاً `book-template.md`) و متغیرهای دلخواه را از جدول بالا در پراپرتیز یا متن وارد کنید.
+2. تمپلیت را در پوشه‌ای مثل `templates` قرار دهید.
+3. پوشه‌ای برای محل ذخیره‌سازی کتاب‌ها بسازید (مثلاً `my books`).
+4. در تنظیمات افزونه:
+	- در **Template note path** مسیر تمپلیت را وارد کنید (مثل `templates/book-template`).
+	- در **Save folder path** پوشه کتاب‌ها را مشخص کنید (مثل `my books`).
+5. از **Command Palette** دستور `add book from url` را اجرا کنید.
+6. در پنجره باز شده لینک خود را وارد کرده و تایید کنید.
+
+تمام! کتاب با موفقیت به فولدر شما اضافه خواهد شد.
+
+اگر تمپلیت پیدا نشود بر اساس تمپلیت پیشفرض فایل ساخته خواهد شد.
+
+<br>
+
+## ⚠️ سلب مسئولیت
+این پلاگین فقط برای استفاده شخصی طراحی شده نه برای جمع‌آوری انبوه داده یا اهداف تجاری.
+
+<br>
+
+## ❤️ حمایت مالی
+این پروژه به صورت رایگان عرضه شده تا همه بدون محدودیت از آن استفاده کنند. اگر این ابزار برای شما مفید بوده می توانید با حمایت مالی(دونیت) به توسعه و بهبود مستمر این پروژه کمک کنید.
+
+[پرداخت با سایت کافیته](https://www.coffeete.ir/ifard)
