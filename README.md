@@ -1,5 +1,7 @@
 # Obsidian Book Clipper
 
+![demo](demo.mp4)
+
 With this plugin, you can grab book information from:
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [taaghche.com](https://taaghche.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [fidibo.com](https://fidibo.com/)
