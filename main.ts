@@ -29,7 +29,7 @@ export default class AddBookPlugin extends Plugin {
     await this.loadSettings();
 
     // Add ribbon icon
-    const ribbonIconEl = this.addRibbonIcon('book-open', 'Add Book from URL', (_evt: MouseEvent) => {
+    const ribbonIconEl = this.addRibbonIcon('book', 'Add Book from URL', (_evt: MouseEvent) => {
       this.addBook();
     });
     ribbonIconEl.addClass('add-book-plugin-ribbon-class');
