@@ -29,7 +29,7 @@ export default class AddBookPlugin extends Plugin {
     await this.loadSettings();
 
     // Add ribbon icon
-    const ribbonIconEl = this.addRibbonIcon('book-down', 'Add Book from URL', (_evt: MouseEvent) => {
+    const ribbonIconEl = this.addRibbonIcon('book-down', 'Add book from url', (_evt: MouseEvent) => {
       this.addBook();
     });
     ribbonIconEl.addClass('add-book-plugin-ribbon-class');
@@ -37,7 +37,7 @@ export default class AddBookPlugin extends Plugin {
     // Add command to run the plugin
     this.addCommand({
       id: 'add-book-from-url',
-      name: 'Add Book from URL',
+      name: 'Add book from url',
       callback: () => this.addBook(),
     });
 
@@ -61,19 +61,19 @@ export default class AddBookPlugin extends Plugin {
   async addBook() {
     new UrlInputModal(this.app, async (url: string) => {
       if (!url) {
-        new Notice('❌ No URL entered', 5000);
+        new Notice('No url entered', 5000);
         return;
       }
 
       const source = this.detectSource(url);
       if (!source) {
-        new Notice(`⚠️ Site not supported. URL must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
+        new Notice(`Site not supported. Link must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
         return;
       }
 
       const bookData = await this.fetchBookData(url, source);
       if (!bookData) {
-        new Notice('❌ Error fetching data. Check internet, VPN, or URL.', 5000);
+        new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
         return;
       }
 
@@ -89,7 +89,7 @@ export default class AddBookPlugin extends Plugin {
         if (templateFile && templateFile instanceof TFile) {
           templateContent = await this.app.vault.read(templateFile);
         } else {
-          new Notice('⚠️ Template not found. Using default.', 5000);
+          new Notice('Template not found. Using default.', 5000);
         }
       }
 
@@ -311,7 +311,7 @@ class AddBookSettingTab extends PluginSettingTab {
       .setName('Template note path')
       .setDesc('Path to the template note. If empty, uses default template.')
       .addText(text => text
-        .setPlaceholder('templates/book-template')
+        .setPlaceholder('Templates/')
         .setValue(this.plugin.settings.templatePath.replace(/\.md$/, ''))
         .onChange(async (value) => {
           if (value && !value.endsWith('.md')) {
