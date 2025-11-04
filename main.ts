@@ -96,21 +96,11 @@ export default class AddBookPlugin extends Plugin {
       // If template is empty, use default content
       if (!templateContent) {
         templateContent = `---
+title: "{{title}}"
 author: "{{author}}"
 pages: {{pages}}
 cover: "{{cover}}"
-tags:
-  - Book
-badge: 
 ---
-
-#  Abstract
-
-
-#  Summary
-
-
-# Bookmark
 
 `;
       }
