@@ -30,7 +30,7 @@ export default class AddBookPlugin extends Plugin {
 
     // Add ribbon icon
     const ribbonIconEl = this.addRibbonIcon('book-down', 'Add book from url', (_evt: MouseEvent) => {
-      this.addBook();
+      void this.addBook();
     });
     ribbonIconEl.addClass('add-book-plugin-ribbon-class');
 
@@ -45,7 +45,7 @@ export default class AddBookPlugin extends Plugin {
     this.addSettingTab(new AddBookSettingTab(this.app, this));
   }
 
-  async onunload() {
+  onunload(): void {
     // Cleanup if needed
   }
 
@@ -58,44 +58,44 @@ export default class AddBookPlugin extends Plugin {
   }
 
   // Main function to add book
-  async addBook() {
-    new UrlInputModal(this.app, async (url: string) => {
-      if (!url) {
-        new Notice('No url entered', 5000);
-        return;
-      }
-
-      const source = this.detectSource(url);
-      if (!source) {
+  addBook() {
+    new UrlInputModal(this.app, (url: string) => {
+      void (async () => {
+        if (!url) {
+          new Notice('No url entered', 5000);
+          return;
+        }
+    
+        const source = this.detectSource(url);
+        if (!source) {
         new Notice(`Site not supported. Link must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
-        return;
-      }
-
-      const bookData = await this.fetchBookData(url, source);
-      if (!bookData) {
-        new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
-        return;
-      }
-
-      // Read template (use default if not specified)
-      let templateContent: string = '';
-      if (this.settings.templatePath) {
-        let templatePath = this.settings.templatePath;
-        if (!templatePath.endsWith('.md')) {
-          templatePath += '.md';
+          return;
         }
-        templatePath = normalizePath(templatePath);
-        const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
-        if (templateFile && templateFile instanceof TFile) {
-          templateContent = await this.app.vault.read(templateFile);
-        } else {
-          new Notice('Template not found. Using default.', 5000);
+    
+        const bookData = await this.fetchBookData(url, source);
+        if (!bookData) {
+          new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
+          return;
         }
-      }
-
-      // If template is empty, use default content
-      if (!templateContent) {
-        templateContent = `---
+    
+        // Read template (use default if not specified)
+        let templateContent: string = '';
+        if (this.settings.templatePath) {
+          let templatePath = this.settings.templatePath;
+          if (!templatePath.endsWith('.md')) templatePath += '.md';
+          templatePath = normalizePath(templatePath);
+    
+          const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
+          if (templateFile && templateFile instanceof TFile) {
+            templateContent = await this.app.vault.read(templateFile);
+          } else {
+            new Notice('Template not found. Using default.', 5000);
+          }
+        }
+    
+        // If template is empty, use default content
+        if (!templateContent) {
+          templateContent = `---
 title: "{{title}}"
 author: "{{author}}"
 pages: {{pages}}
@@ -103,29 +103,31 @@ cover: "{{cover}}"
 ---
 
 `;
-      }
-
-      // Replace placeholders in template
-      let noteContent: string = templateContent
-        .replace(/{{title}}/g, bookData.title)
-        .replace(/{{author}}/g, bookData.author)
-        .replace(/{{pages}}/g, bookData.pages)
-        .replace(/{{cover}}/g, bookData.cover);
-
-      // Create unique filename
-      const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
-      const uniqueFilename: string = await this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
-
-      // Create new file
-      const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
-      const newFile = await this.app.vault.create(filePath, noteContent);
-      new Notice(`✅ New note created: ${uniqueFilename}.md`, 5000);
-
-      // Open the new note if the setting is enabled
-      if (this.settings.openAfterCreate) {
-        await this.app.workspace.getLeaf().openFile(newFile);
-      }
+        }
+    
+        // Replace placeholders in template
+        let noteContent: string = templateContent
+          .replace(/{{title}}/g, bookData.title)
+          .replace(/{{author}}/g, bookData.author)
+          .replace(/{{pages}}/g, bookData.pages)
+          .replace(/{{cover}}/g, bookData.cover);
+    
+        // Create unique filename
+        const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
+        const uniqueFilename: string = await this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
+    
+        // Create new file
+        const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
+        const newFile = await this.app.vault.create(filePath, noteContent);
+        new Notice(`✅ New note created: ${uniqueFilename}.md`, 5000);
+    
+        // Open the new note if the setting is enabled
+        if (this.settings.openAfterCreate) {
+          await this.app.workspace.getLeaf().openFile(newFile);
+        }
+      })();
     }).open();
+    
   }
 
   // Detect source function (from original code)
@@ -240,7 +242,7 @@ cover: "{{cover}}"
   }
 
   // Unique filename function (adapted)
-  async getUniqueFilename(baseName: string, folder: string): Promise<string> {
+  getUniqueFilename(baseName: string, folder: string): string {
     folder = normalizePath(folder);
     let counter: number = 1;
     let newName: string = baseName;
