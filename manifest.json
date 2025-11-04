@@ -1,9 +1,9 @@
 {
 	"id": "book-clipper",
 	"name": "Book Clipper",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"minAppVersion": "0.15.0",
-	"description": "Save book details from websites into your Obsidian notes.",
+	"description": "Save book details from websites into your notes.",
 	"author": "Hossein Fardmohammadi",
 	"authorUrl": "https://ifard.ir",
 	"fundingUrl": "https://www.coffeete.ir/ifard",
