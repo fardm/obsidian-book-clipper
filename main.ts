@@ -119,7 +119,7 @@ cover: "{{cover}}"
         // Create new file
         const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
         const newFile = await this.app.vault.create(filePath, noteContent);
-        new Notice(`✅ New note created: ${uniqueFilename}.md`, 5000);
+        new Notice(`New note created: ${uniqueFilename}.md`, 5000);
     
         // Open the new note if the setting is enabled
         if (this.settings.openAfterCreate) {
