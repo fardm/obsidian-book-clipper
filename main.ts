@@ -57,6 +57,12 @@ export default class AddBookPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
+  // Helper function to check if a folder path is root
+  private isRootFolder(folderPath: string): boolean {
+    const normalized = normalizePath(folderPath.replace(/\/$/, ''));
+    return normalized === '' || normalized === '/';
+  }
+
   // Main function to add book
   addBook() {
     new UrlInputModal(this.app, (url: string) => {
@@ -113,18 +119,15 @@ cover: "{{cover}}"
           .replace(/{{cover}}/g, bookData.cover);
         
         // Validate save folder path if specified (skip validation for root folder)
-        if (this.settings.saveFolder) {
+        if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
           // Normalize and remove trailing slash
           const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
           
-          // Root folder is always valid, skip validation
-          if (folderPath !== '' && folderPath !== '/') {
-            // Check if the specified folder exists
-            const folder = this.app.vault.getAbstractFileByPath(folderPath);
-            if (!folder || !(folder instanceof TFolder)) {
-              new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
-              return;
-            }
+          // Check if the specified folder exists
+          const folder = this.app.vault.getAbstractFileByPath(folderPath);
+          if (!folder || !(folder instanceof TFolder)) {
+            new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
+            return;
           }
         }
         
