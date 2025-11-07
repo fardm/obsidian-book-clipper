@@ -262,8 +262,8 @@ cover: "{{cover}}"
     // Filter files that are exactly in the target folder (not in subfolders)
     const files = this.app.vault.getMarkdownFiles().filter(f => {
       if (normalizedFolder === '') {
-        // For root folder, check if file has no parent (is in root)
-        return f.parent === null;
+        // For root folder, check if file's parent is the root folder
+        return f.parent === this.app.vault.getRoot();
       } else {
         // For specific folder, check if parent path matches exactly
         return f.parent?.path === normalizedFolder;
