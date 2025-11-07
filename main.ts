@@ -1,6 +1,6 @@
 // main.ts
 
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, normalizePath } from 'obsidian';
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath } from 'obsidian';
 
 // Plugin settings
 interface AddBookSettings {
@@ -111,11 +111,22 @@ cover: "{{cover}}"
           .replace(/{{author}}/g, bookData.author)
           .replace(/{{pages}}/g, bookData.pages)
           .replace(/{{cover}}/g, bookData.cover);
-    
+        
+        // Validate save folder path if specified
+        if (this.settings.saveFolder) {
+          // Remove trailing slash for folder existence check
+          const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
+          const folder = this.app.vault.getAbstractFileByPath(folderPath);
+          if (!folder || !(folder instanceof TFolder)) {
+            new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
+            return;
+          }
+        }
+        
         // Create unique filename
         const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
         const uniqueFilename: string = this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
-    
+        
         // Create new file
         const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
         const newFile = await this.app.vault.create(filePath, noteContent);
