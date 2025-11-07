@@ -112,14 +112,19 @@ cover: "{{cover}}"
           .replace(/{{pages}}/g, bookData.pages)
           .replace(/{{cover}}/g, bookData.cover);
         
-        // Validate save folder path if specified
+        // Validate save folder path if specified (skip validation for root folder)
         if (this.settings.saveFolder) {
-          // Remove trailing slash for folder existence check
+          // Normalize and remove trailing slash
           const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
-          const folder = this.app.vault.getAbstractFileByPath(folderPath);
-          if (!folder || !(folder instanceof TFolder)) {
-            new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
-            return;
+          
+          // Root folder is always valid, skip validation
+          if (folderPath !== '' && folderPath !== '/') {
+            // Check if the specified folder exists
+            const folder = this.app.vault.getAbstractFileByPath(folderPath);
+            if (!folder || !(folder instanceof TFolder)) {
+              new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
+              return;
+            }
           }
         }
         
