@@ -64,44 +64,45 @@ export default class AddBookPlugin extends Plugin {
   }
 
   // Main function to add book
-  addBook() {
-    new UrlInputModal(this.app, (url: string) => {
-      void (async () => {
-        if (!url) {
-          new Notice('No url entered', 5000);
-          return;
-        }
+  async addBook() {
+    const modal = new UrlInputModal(this.app);
+    modal.open();
     
-        const source = this.detectSource(url);
-        if (!source) {
-        new Notice(`Site not supported. Link must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
-          return;
-        }
+    const url = await modal.promise;
     
-        const bookData = await this.fetchBookData(url, source);
-        if (!bookData) {
-          new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
-          return;
-        }
-    
-        // Read template (use default if not specified)
-        let templateContent: string = '';
-        if (this.settings.templatePath) {
-          let templatePath = this.settings.templatePath;
-          if (!templatePath.endsWith('.md')) templatePath += '.md';
-          templatePath = normalizePath(templatePath);
-    
-          const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
-          if (templateFile && templateFile instanceof TFile) {
-            templateContent = await this.app.vault.read(templateFile);
-          } else {
-            new Notice('Template not found. Using default.', 5000);
-          }
-        }
-    
-        // If template is empty, use default content
-        if (!templateContent) {
-          templateContent = `---
+    if (!url) {
+      new Notice('No url entered', 5000);
+      return;
+    }
+
+    const source = this.detectSource(url);
+    if (!source) {
+      new Notice(`Site not supported. Link must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
+      return;
+    }
+
+    const bookData = await this.fetchBookData(url, source);
+    if (!bookData) {
+      new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
+      return;
+    }
+
+    // Read template (use default if not specified)
+    let templateContent: string = '';
+    if (this.settings.templatePath) {
+      const templatePath = normalizePath(this.settings.templatePath);
+      
+      const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
+      if (templateFile && templateFile instanceof TFile) {
+        templateContent = await this.app.vault.read(templateFile);
+      } else {
+        new Notice('Template not found. Using default.', 5000);
+      }
+    }
+
+    // If template is empty, use default content
+    if (!templateContent) {
+      templateContent = `---
 title: "{{title}}"
 author: "{{author}}"
 pages: {{pages}}
@@ -109,44 +110,41 @@ cover: "{{cover}}"
 ---
 
 `;
-        }
+    }
+
+    // Replace placeholders in template
+    let noteContent: string = templateContent
+      .replace(/{{title}}/g, bookData.title)
+      .replace(/{{author}}/g, bookData.author)
+      .replace(/{{pages}}/g, bookData.pages)
+      .replace(/{{cover}}/g, bookData.cover);
     
-        // Replace placeholders in template
-        let noteContent: string = templateContent
-          .replace(/{{title}}/g, bookData.title)
-          .replace(/{{author}}/g, bookData.author)
-          .replace(/{{pages}}/g, bookData.pages)
-          .replace(/{{cover}}/g, bookData.cover);
-        
-        // Validate save folder path if specified (skip validation for root folder)
-        if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
-          // Normalize and remove trailing slash
-          const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
-          
-          // Check if the specified folder exists
-          const folder = this.app.vault.getAbstractFileByPath(folderPath);
-          if (!folder || !(folder instanceof TFolder)) {
-            new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
-            return;
-          }
-        }
-        
-        // Create unique filename
-        const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
-        const uniqueFilename: string = this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
-        
-        // Create new file
-        const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
-        const newFile = await this.app.vault.create(filePath, noteContent);
-        new Notice(`New note created: ${uniqueFilename}.md`, 5000);
+    // Validate save folder path if specified (skip validation for root folder)
+    if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
+      // Normalize and remove trailing slash
+      const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
+      
+      // Check if the specified folder exists
+      const folder = this.app.vault.getAbstractFileByPath(folderPath);
+      if (!folder || !(folder instanceof TFolder)) {
+        new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
+        return;
+      }
+    }
     
-        // Open the new note if the setting is enabled
-        if (this.settings.openAfterCreate) {
-          await this.app.workspace.getLeaf().openFile(newFile);
-        }
-      })();
-    }).open();
+    // Create unique filename
+    const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
+    const uniqueFilename: string = this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
     
+    // Create new file
+    const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
+    const newFile = await this.app.vault.create(filePath, noteContent);
+    new Notice(`New note created: ${uniqueFilename}.md`, 5000);
+
+    // Open the new note if the setting is enabled
+    if (this.settings.openAfterCreate) {
+      await this.app.workspace.getLeaf().openFile(newFile);
+    }
   }
 
   // Detect source function (from original code)
@@ -288,12 +286,16 @@ cover: "{{cover}}"
 
 // Modal for URL input
 class UrlInputModal extends Modal {
-  onSubmit: (url: string) => void;
+  promise: Promise<string>;
+  resolve: ((value: string) => void) | null;
   input: HTMLInputElement;
 
-  constructor(app: App, onSubmit: (url: string) => void) {
+  constructor(app: App) {
     super(app);
-    this.onSubmit = onSubmit;
+    this.resolve = null;
+    this.promise = new Promise((resolve) => {
+      this.resolve = resolve;
+    });
   }
 
   onOpen() {
@@ -306,7 +308,10 @@ class UrlInputModal extends Modal {
     const buttonContainer = contentEl.createEl('div', { cls: 'add-book-button-container' });
     const button = buttonContainer.createEl('button', { text: 'Submit', cls: 'add-book-submit-button' });
     button.addEventListener('click', () => {
-      this.onSubmit(this.input.value);
+      if (this.resolve) {
+        this.resolve(this.input.value);
+        this.resolve = null;
+      }
       this.close();
     });
 
@@ -314,7 +319,10 @@ class UrlInputModal extends Modal {
     this.input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        this.onSubmit(this.input.value);
+        if (this.resolve) {
+          this.resolve(this.input.value);
+          this.resolve = null;
+        }
         this.close();
       }
     });
@@ -322,6 +330,11 @@ class UrlInputModal extends Modal {
 
   onClose() {
     this.contentEl.empty();
+    // Resolve with empty string if modal is closed without submitting
+    if (this.resolve) {
+      this.resolve('');
+      this.resolve = null;
+    }
   }
 }
 
