@@ -114,7 +114,7 @@ cover: "{{cover}}"
     
         // Create unique filename
         const cleanTitle: string = bookData.title.replace(/[\\/:*?"<>|]/g, "");
-        const uniqueFilename: string = await this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
+        const uniqueFilename: string = this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
     
         // Create new file
         const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
@@ -275,7 +275,7 @@ class UrlInputModal extends Modal {
 
     const buttonContainer = contentEl.createEl('div', { cls: 'add-book-button-container' });
     const button = buttonContainer.createEl('button', { text: 'Submit', cls: 'add-book-submit-button' });
-    button.onClickEvent(() => {
+    button.addEventListener('click', () => {
       this.onSubmit(this.input.value);
       this.close();
     });
