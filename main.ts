@@ -254,10 +254,21 @@ cover: "{{cover}}"
 
   // Unique filename function (adapted)
   getUniqueFilename(baseName: string, folder: string): string {
-    folder = normalizePath(folder);
+    // Normalize folder path and remove trailing slash
+    const normalizedFolder = folder ? normalizePath(folder.replace(/\/$/, '')) : '';
     let counter: number = 1;
     let newName: string = baseName;
-    const files = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(folder));
+    
+    // Filter files that are exactly in the target folder (not in subfolders)
+    const files = this.app.vault.getMarkdownFiles().filter(f => {
+      if (normalizedFolder === '') {
+        // For root folder, check if file has no parent (is in root)
+        return f.parent === null;
+      } else {
+        // For specific folder, check if parent path matches exactly
+        return f.parent?.path === normalizedFolder;
+      }
+    });
 
     while (files.some(file => file.basename === newName)) {
       newName = `${baseName} ${counter}`;
