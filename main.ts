@@ -29,7 +29,7 @@ export default class AddBookPlugin extends Plugin {
     await this.loadSettings();
 
     // Add ribbon icon
-    const ribbonIconEl = this.addRibbonIcon('book-down', 'Add book from url', (_evt: MouseEvent) => {
+    const ribbonIconEl = this.addRibbonIcon('book-down', 'Add book from link.', (_evt: MouseEvent) => {
       void this.addBook();
     });
     ribbonIconEl.addClass('add-book-plugin-ribbon-class');
@@ -37,7 +37,7 @@ export default class AddBookPlugin extends Plugin {
     // Add command to run the plugin
     this.addCommand({
       id: 'add-book-from-url',
-      name: 'Add book from url',
+      name: 'Add book from link.',
       callback: () => this.addBook(),
     });
 
@@ -71,19 +71,19 @@ export default class AddBookPlugin extends Plugin {
     const url = await modal.promise;
     
     if (!url) {
-      new Notice('No url entered', 5000);
+      new Notice('Please enter a link.', 5000);
       return;
     }
 
     const source = this.detectSource(url);
     if (!source) {
-      new Notice(`Site not supported. Link must be from one of the following:\n- Taaghche\n- Fidibo\n- Behkhaan`, 5000);
+      new Notice(`This site is not supported.`, 5000);
       return;
     }
 
     const bookData = await this.fetchBookData(url, source);
     if (!bookData) {
-      new Notice('Error fetching data. Check internet, vpn, or url.', 5000);
+      new Notice('Failed to fetch data.', 5000);
       return;
     }
 
@@ -127,7 +127,7 @@ cover: "{{cover}}"
       // Check if the specified folder exists
       const folder = this.app.vault.getAbstractFileByPath(folderPath);
       if (!folder || !(folder instanceof TFolder)) {
-        new Notice('Error: Save folder not found. Please set a valid path in the settings.', 5000);
+        new Notice('Save folder not found. Please set a valid path in settings.', 5000);
         return;
       }
     }
