@@ -1,6 +1,6 @@
 // main.ts
 
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath, AbstractInputSuggest, TextComponent } from 'obsidian';
 
 // Plugin settings
 interface AddBookSettings {
@@ -137,7 +137,7 @@ cover: "{{cover}}"
     const uniqueFilename: string = this.getUniqueFilename(cleanTitle, this.settings.saveFolder);
     
     // Create new file
-    const filePath: string = normalizePath(`${this.settings.saveFolder}${uniqueFilename}.md`);
+    const filePath: string = normalizePath(`${this.settings.saveFolder}/${uniqueFilename}.md`);
     const newFile = await this.app.vault.create(filePath, noteContent);
     new Notice(`New note created: ${uniqueFilename}.md`, 5000);
 
@@ -338,6 +338,64 @@ class UrlInputModal extends Modal {
   }
 }
 
+// File Suggest class
+class FileSuggest extends AbstractInputSuggest<TFile> {
+  textComponent: TextComponent;
+
+  constructor(app: App, textComponent: TextComponent) {
+    super(app, textComponent.inputEl);
+    this.textComponent = textComponent;
+  }
+
+  protected getSuggestions(query: string): TFile[] {
+    const files = this.app.vault.getMarkdownFiles();
+    const lowerQuery = query.toLowerCase();
+    return files.filter(file => file.path.toLowerCase().includes(lowerQuery));
+  }
+
+  renderSuggestion(file: TFile, el: HTMLElement): void {
+    el.setText(file.path);
+  }
+
+  selectSuggestion(file: TFile): void {
+    this.textComponent.setValue(file.path);
+    this.textComponent.inputEl.dispatchEvent(new Event('input'));
+    this.close();
+  }
+}
+
+// Folder Suggest class
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+  textComponent: TextComponent;
+
+  constructor(app: App, textComponent: TextComponent) {
+    super(app, textComponent.inputEl);
+    this.textComponent = textComponent;
+  }
+
+  protected getSuggestions(query: string): TFolder[] {
+    const abstractFiles = this.app.vault.getAllLoadedFiles();
+    const folders = abstractFiles.filter(f => f instanceof TFolder) as TFolder[];
+    const lowerQuery = query.toLowerCase();
+    return folders.filter(folder => {
+      const path = folder.path === '' ? '/' : folder.path;
+      return path.toLowerCase().includes(lowerQuery);
+    });
+  }
+
+  renderSuggestion(folder: TFolder, el: HTMLElement): void {
+    const path = folder.path === '' ? '/' : folder.path;
+    el.setText(path);
+  }
+
+  selectSuggestion(folder: TFolder): void {
+    const path = folder.path === '' ? '/' : folder.path;
+    this.textComponent.setValue(path);
+    this.textComponent.inputEl.dispatchEvent(new Event('input'));
+    this.close();
+  }
+}
+
 // Settings tab class
 class AddBookSettingTab extends PluginSettingTab {
   plugin: AddBookPlugin;
@@ -355,29 +413,33 @@ class AddBookSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Template note path')
       .setDesc('Path to the template note. If empty, uses default template.')
-      .addText(text => text
-        .setPlaceholder('Templates/')
-        .setValue(this.plugin.settings.templatePath.replace(/\.md$/, ''))
-        .onChange(async (value) => {
-          if (value && !value.endsWith('.md')) {
-            value += '.md';
-          }
-          this.plugin.settings.templatePath = normalizePath(value);
-          await this.plugin.saveSettings();
-        }));
+      .addText(text => {
+        text
+          .setPlaceholder('Templates/book-template.md')
+          .setValue(this.plugin.settings.templatePath)
+          .onChange(async (value) => {
+            value = value.trim();
+            this.plugin.settings.templatePath = normalizePath(value);
+            await this.plugin.saveSettings();
+          });
+        new FileSuggest(this.app, text);
+      });
 
     // Setting for save folder
     new Setting(containerEl)
       .setName('Save folder path')
       .setDesc('Folder to save new notes. If empty, saves to root.')
-      .addText(text => text
-        .setPlaceholder('Books/')
-        .setValue(this.plugin.settings.saveFolder)
-        .onChange(async (value) => {
-          let normalized = normalizePath(value);
-          this.plugin.settings.saveFolder = normalized.endsWith('/') ? normalized : normalized + '/';
-          await this.plugin.saveSettings();
-        }));
+      .addText(text => {
+        text
+          .setPlaceholder('Books/')
+          .setValue(this.plugin.settings.saveFolder)
+          .onChange(async (value) => {
+            let normalized = normalizePath(value);
+            this.plugin.settings.saveFolder = normalized;
+            await this.plugin.saveSettings();
+          });
+        new FolderSuggest(this.app, text);
+      });
 
     // Setting for opening note after creation
     new Setting(containerEl)

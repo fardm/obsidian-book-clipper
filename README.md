@@ -1,7 +1,7 @@
 English | [فارسی](README-fa.md)
 
 
-# Obsidian Book Clipper
+# Book Clipper
 
 https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
 
