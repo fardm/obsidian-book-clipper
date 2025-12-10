@@ -1,6 +1,6 @@
 // main.ts
 
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath, AbstractInputSuggest, TextComponent } from 'obsidian';
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath, AbstractInputSuggest, TextComponent, TAbstractFile } from 'obsidian';
 
 // Plugin settings
 interface AddBookSettings {
@@ -284,6 +284,11 @@ cover: "{{cover}}"
   }
 }
 
+// Helper function for type predicate
+function isTFolder(f: TAbstractFile): f is TFolder {
+  return f instanceof TFolder;
+}
+
 // Modal for URL input
 class UrlInputModal extends Modal {
   promise: Promise<string>;
@@ -375,7 +380,7 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
 
   protected getSuggestions(query: string): TFolder[] {
     const abstractFiles = this.app.vault.getAllLoadedFiles();
-    const folders = abstractFiles.filter(f => f instanceof TFolder) as TFolder[];
+    const folders = abstractFiles.filter(isTFolder);
     const lowerQuery = query.toLowerCase();
     return folders.filter(folder => {
       const path = folder.path === '' ? '/' : folder.path;

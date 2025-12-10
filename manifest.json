@@ -1,7 +1,7 @@
 {
 	"id": "book-clipper",
 	"name": "Book Clipper",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"minAppVersion": "0.15.0",
 	"description": "Save book details from websites into your notes.",
 	"author": "Hossein Fardmohammadi",
