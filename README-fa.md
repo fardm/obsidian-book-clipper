@@ -1,11 +1,11 @@
 [English](https://github.com/fardm/obsidian-book-clipper/blob/master/README.md) | فارسی
 
 
-# افزونه Book Clipper
+# پلاگین Book Clipper
 
-https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
+![image](image.webp)
 
-با استفاده از این افزونه می توانید اطلاعات هر کتابی را از سایت های زیر استخراج کرده و در ابسیدین ذخیره کنید:
+با استفاده از این پلاگین می توانید اطلاعات هر کتابی را از سایت های زیر استخراج کرده و در ابسیدین ذخیره کنید:
 
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [طاقچه](https://taaghche.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [فیدیبو](https://fidibo.com/)
@@ -45,6 +45,9 @@ https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
 تمام! کتاب با موفقیت به فولدر شما اضافه خواهد شد.
 
 اگر تمپلیت پیدا نشود بر اساس تمپلیت پیشفرض فایل ساخته خواهد شد.
+
+https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
+
 
 <br>
 

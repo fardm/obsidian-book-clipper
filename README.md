@@ -3,7 +3,7 @@ English | [فارسی](https://github.com/fardm/obsidian-book-clipper/blob/maste
 
 # Book Clipper
 
-https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
+![image](image.webp)
 
 
 This plugin imports book information from these websites into Obsidian:
@@ -43,6 +43,8 @@ This plugin imports book information from these websites into Obsidian:
     - **Save folder path** → `my books`
 5. Open the **Command Palette** and run `add book from url`.
 6. Enter the book link and confirm.
+
+https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
 
 <br>
 
