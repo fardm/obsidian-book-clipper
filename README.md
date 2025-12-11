@@ -1,4 +1,4 @@
-English | [فارسی](README-fa.md)
+English | [فارسی](https://github.com/fardm/obsidian-book-clipper/blob/master/README-fa.md)
 
 
 # Book Clipper
@@ -28,11 +28,9 @@ This plugin imports book information from these websites into Obsidian:
 <br>
 
 ## ⚙️ Installation
-Until the plugin is available in **Community Plugins**, it must be installed manually. You can use the **brat** plugin, which is designed for testing beta versions of plugins:
-1. Install the [brat](https://github.com/TfTHacker/obsidian42-brat) plugin from **Community Plugins**.
-2. In the **plugin settings**, click the **Add Beta Plugin** button.
-3. Copy this repository’s link and paste it into the field.
-4. Select the latest version and click **Add Plugin**.
+1. Open [this link](https://obsidian.md/plugins?id=book-clipper).
+2. Select **Open Obsidian**.
+3. Click the **Install** button.
 
 <br>
 
