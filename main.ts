@@ -152,6 +152,7 @@ cover: "{{cover}}"
     const patterns: { [key: string]: RegExp } = {
       taaghche: /taaghche\.com\/book\//i,
       fidibo: /fidibo\.com\/(books|book)\//i,
+      goodreads: /goodreads\.com\/book\/show\//i,
       behkhaan: /behkhaan\.ir\/books\//i
     };
     const match = Object.entries(patterns).find(([_, pattern]) => pattern.test(url));
@@ -215,6 +216,13 @@ cover: "{{cover}}"
           author: authorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || "Unknown",
           pages: pagesRow?.querySelector('div.book-vl-rows-item-subtitle')?.textContent?.match(/\d+/)?.[0] || "Unknown",
           cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || ""
+        };
+      } else if (source === 'goodreads') {
+        return {
+          title: doc.querySelector('h1[data-testid="bookTitle"]')?.textContent?.trim() || 'Unknown',
+          author: doc.querySelector('span[data-testid="name"]')?.textContent?.trim() || 'Unknown',
+          pages: doc.querySelector('p[data-testid="pagesFormat"]')?.textContent?.match(/\d+/)?.[0] || 'Unknown',
+          cover: doc.querySelector('img.ResponsiveImage')?.getAttribute('src') || ''
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
