@@ -294,15 +294,21 @@ datepublished: "{{datepublished}}"
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("نویسنده"));
         const pagesRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("تعداد صفحات"));
+        const publisherRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
+          .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("ناشر"));
+        const translatorRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
+          .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("مترجم"));
+        const datePublishedRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
+          .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("تاریخ انتشار"));
         
         return {
           title: titleElement?.textContent?.trim() || "Unknown",
           author: authorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || "Unknown",
           pages: pagesRow?.querySelector('div.book-vl-rows-item-subtitle')?.textContent?.match(/\d+/)?.[0] || "Unknown",
           cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || "",
-          publisher: '',
-          translator: '',
-          datepublished: ''
+          publisher: publisherRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
+          translator: translatorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
+          datepublished: datePublishedRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || ''
         };
       } else if (source === 'goodreads') {
         // Extract from JSON-LD
@@ -358,14 +364,22 @@ datepublished: "{{datepublished}}"
           }
         }
         
+        // Extract publisher
+        const publisherElement = doc.querySelector('#rpi-attribute-book_details-publisher .rpi-attribute-value span');
+        const publisher: string = publisherElement?.textContent?.trim() || '';
+        
+        // Extract publication date
+        const datePublishedElement = doc.querySelector('#rpi-attribute-book_details-publication_date .rpi-attribute-value span');
+        const datepublished: string = datePublishedElement?.textContent?.trim() || '';
+        
         return {
           title: title,
           author: author,
           pages: pages,
           cover: cover,
-          publisher: '',
-          translator: '',
-          datepublished: ''
+          publisher: publisher,
+          translator: '', // Not available on Amazon
+          datepublished: datepublished
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
