@@ -24,8 +24,11 @@ This plugin imports book information from these websites into Obsidian:
 | ------ | ------------------ |
 | title  | {{title}}  |
 | author | {{author}} |
+| translatro  | {{translator}}  |
 | pages  | {{pages}}  |
 | cover  | {{cover}}  |
+| publisher  | {{publisher}}  |
+| datepublished  | {{datepublished}}  |
 
 
 <br>
