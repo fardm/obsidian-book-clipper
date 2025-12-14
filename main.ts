@@ -153,6 +153,7 @@ cover: "{{cover}}"
       taaghche: /taaghche\.com\/book\//i,
       fidibo: /fidibo\.com\/(books|book)\//i,
       goodreads: /goodreads\.com\/book\/show\//i,
+      amazon: /amazon\.com\/([a-zA-Z0-9-]+)\/dp\//i,
       behkhaan: /behkhaan\.ir\/books\//i
     };
     const match = Object.entries(patterns).find(([_, pattern]) => pattern.test(url));
@@ -223,6 +224,36 @@ cover: "{{cover}}"
           author: doc.querySelector('span[data-testid="name"]')?.textContent?.trim() || 'Unknown',
           pages: doc.querySelector('p[data-testid="pagesFormat"]')?.textContent?.match(/\d+/)?.[0] || 'Unknown',
           cover: doc.querySelector('img.ResponsiveImage')?.getAttribute('src') || ''
+        };
+      } else if (source === 'amazon') {
+        const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || "Unknown";
+        
+        const authorElement = doc.querySelector('span.author a.a-link-normal');
+        const author: string = authorElement?.textContent?.trim() || "Unknown";
+        
+        const pagesElement = doc.querySelector('div.rpi-attribute-value span');
+        let pages: string = "Unknown";
+        if (pagesElement) {
+          const pagesText: string = pagesElement.textContent?.trim() || '';
+          const pageMatch = pagesText.match(/\d+/);
+          pages = pageMatch ? pageMatch[0] : "Unknown";
+        }
+        
+        const coverElement = doc.querySelector('img#landingImage');
+        let cover: string = "";
+        if (coverElement) {
+          cover = coverElement.getAttribute('src') || "";
+          const highResImage = coverElement.getAttribute('data-old-hires');
+          if (highResImage) {
+            cover = highResImage;
+          }
+        }
+        
+        return {
+          title: title,
+          author: author,
+          pages: pages,
+          cover: cover
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
