@@ -20,6 +20,9 @@ interface BookData {
   author: string;
   pages: string;
   cover: string;
+  publisher?: string;
+  translator?: string;
+  datepublished?: string;
 }
 
 export default class AddBookPlugin extends Plugin {
@@ -105,8 +108,11 @@ export default class AddBookPlugin extends Plugin {
       templateContent = `---
 title: "{{title}}"
 author: "{{author}}"
+translator: "{{translator}}"
 pages: {{pages}}
 cover: "{{cover}}"
+publisher: "{{publisher}}"
+datepublished: "{{datepublished}}"
 ---
 
 `;
@@ -117,7 +123,10 @@ cover: "{{cover}}"
       .replace(/{{title}}/g, bookData.title)
       .replace(/{{author}}/g, bookData.author)
       .replace(/{{pages}}/g, bookData.pages)
-      .replace(/{{cover}}/g, bookData.cover);
+      .replace(/{{cover}}/g, bookData.cover)
+      .replace(/{{publisher}}/g, bookData.publisher || '')
+      .replace(/{{translator}}/g, bookData.translator || '')
+      .replace(/{{datepublished}}/g, bookData.datepublished || '');
     
     // Validate save folder path if specified (skip validation for root folder)
     if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
@@ -160,6 +169,50 @@ cover: "{{cover}}"
     return match ? match[0] : null;
   }
 
+  // Helper function to extract JSON-LD data from HTML
+  private extractJsonLd(html: string): any | null {
+    try {
+      const doc: Document = new DOMParser().parseFromString(html, 'text/html');
+      const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+      
+      for (const script of Array.from(jsonLdScripts)) {
+        try {
+          const jsonData = JSON.parse(script.textContent || '');
+          // Check if it's a Book or Product type
+          if (jsonData['@type'] === 'Book' || 
+              (Array.isArray(jsonData['@type']) && 
+               (jsonData['@type'].includes('Book') || jsonData['@type'].includes('Product')))) {
+            return jsonData;
+          }
+        } catch (e) {
+          // Skip invalid JSON
+          continue;
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Helper function to concatenate author names
+  private concatenateAuthors(authors: any[]): string {
+    if (!authors || !Array.isArray(authors) || authors.length === 0) {
+      return 'Unknown';
+    }
+    return authors
+      .map((author: any) => {
+        if (typeof author === 'string') {
+          return author;
+        } else if (author && typeof author === 'object' && author.name) {
+          return author.name;
+        }
+        return '';
+      })
+      .filter((name: string) => name.trim() !== '')
+      .join(', ') || 'Unknown';
+  }
+
   // Fetch book data function (with requestUrl)
   async fetchBookData(url: string, source: string): Promise<BookData | null> {
     try {
@@ -173,6 +226,33 @@ cover: "{{cover}}"
 
       // Extraction for each source (from original add-book.js, adapted for TS)
       if (source === 'taaghche') {
+        // Extract from JSON-LD
+        const jsonLd = this.extractJsonLd(html);
+        if (jsonLd) {
+          const workExample = jsonLd.workExample || jsonLd;
+          
+          // Extract authors
+          const authors = jsonLd.author || [];
+          const author = this.concatenateAuthors(authors);
+          
+          // Extract translators
+          let translator = '';
+          if (workExample.translator && Array.isArray(workExample.translator)) {
+            translator = this.concatenateAuthors(workExample.translator);
+          }
+          
+          return {
+            title: jsonLd.name || 'Unknown',
+            author: author,
+            pages: workExample.numberOfPages ? String(workExample.numberOfPages) : 'Unknown',
+            cover: jsonLd.image || '',
+            publisher: workExample.publisher?.name || '',
+            translator: translator || '',
+            datepublished: workExample.datePublished || ''
+          };
+        }
+        
+        // Fallback to HTML selectors if JSON-LD not found
         let pages: string = 'Unknown';
         const infoElements = doc.querySelectorAll('div.moreInfo_info__BE9J3');
         
@@ -203,7 +283,10 @@ cover: "{{cover}}"
           title: doc.querySelector("h1")?.textContent?.trim() || "Unknown",
           author: doc.querySelector("a[href*='/author/']")?.textContent?.trim() || "Unknown",
           pages: pages,
-          cover: doc.querySelector("#book-image")?.getAttribute("src")?.replace(/\?.*$/, "") || ""
+          cover: doc.querySelector("#book-image")?.getAttribute("src")?.replace(/\?.*$/, "") || "",
+          publisher: '',
+          translator: '',
+          datepublished: ''
         };
       } else if (source === 'fidibo') {
         const titleElement = doc.querySelector('h1.book-main-box-detail-title');
@@ -216,14 +299,40 @@ cover: "{{cover}}"
           title: titleElement?.textContent?.trim() || "Unknown",
           author: authorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || "Unknown",
           pages: pagesRow?.querySelector('div.book-vl-rows-item-subtitle')?.textContent?.match(/\d+/)?.[0] || "Unknown",
-          cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || ""
+          cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || "",
+          publisher: '',
+          translator: '',
+          datepublished: ''
         };
       } else if (source === 'goodreads') {
+        // Extract from JSON-LD
+        const jsonLd = this.extractJsonLd(html);
+        if (jsonLd) {
+          // Extract authors
+          const authors = jsonLd.author || [];
+          const author = this.concatenateAuthors(authors);
+          
+          return {
+            title: jsonLd.name || 'Unknown',
+            author: author,
+            pages: jsonLd.numberOfPages ? String(jsonLd.numberOfPages) : 'Unknown',
+            cover: jsonLd.image || '',
+            // Goodreads doesn't have these fields in JSON-LD
+            publisher: '',
+            translator: '',
+            datepublished: ''
+          };
+        }
+        
+        // Fallback to HTML selectors if JSON-LD not found
         return {
           title: doc.querySelector('h1[data-testid="bookTitle"]')?.textContent?.trim() || 'Unknown',
           author: doc.querySelector('span[data-testid="name"]')?.textContent?.trim() || 'Unknown',
           pages: doc.querySelector('p[data-testid="pagesFormat"]')?.textContent?.match(/\d+/)?.[0] || 'Unknown',
-          cover: doc.querySelector('img.ResponsiveImage')?.getAttribute('src') || ''
+          cover: doc.querySelector('img.ResponsiveImage')?.getAttribute('src') || '',
+          publisher: '',
+          translator: '',
+          datepublished: ''
         };
       } else if (source === 'amazon') {
         const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || "Unknown";
@@ -253,7 +362,10 @@ cover: "{{cover}}"
           title: title,
           author: author,
           pages: pages,
-          cover: cover
+          cover: cover,
+          publisher: '',
+          translator: '',
+          datepublished: ''
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
@@ -286,7 +398,10 @@ cover: "{{cover}}"
           title: title,
           author: author,
           pages: pages,
-          cover: cover
+          cover: cover,
+          publisher: '',
+          translator: '',
+          datepublished: ''
         };
       }
 
