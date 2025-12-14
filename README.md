@@ -8,9 +8,12 @@ English | [فارسی](https://github.com/fardm/obsidian-book-clipper/blob/maste
 
 This plugin imports book information from these websites into Obsidian:
 
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fwww.goodreads.com%2f" width="18px" height="18px" align="center"> [goodreads.com](https://www.goodreads.com/)
+- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fwww.amazon.com%2f" width="18px" height="18px" align="center"> [amazon.com](https://www.amazon.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ftaaghche.com%2f" width="18px" height="18px" align="center"> [taaghche.com](https://taaghche.com/)
 - <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2ffidibo.com%2f" width="18px" height="18px" align="center"> [fidibo.com](https://fidibo.com/)
-- <img src="https://www.google.com/s2/favicons?sz=64&amp;domain=https%3a%2f%2fbehkhaan.ir%2f" width="18px" height="18px" align="center"> [behkhaan.ir](https://behkhaan.ir/)
+
+
 
 
 <br>
