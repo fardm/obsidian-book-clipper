@@ -213,6 +213,33 @@ datepublished: "{{datepublished}}"
       .join(', ') || 'Unknown';
   }
 
+  // Helper function to extract __NEXT_DATA__ from HTML
+  private extractNextData(html: string): any | null {
+    try {
+      const doc: Document = new DOMParser().parseFromString(html, 'text/html');
+      const nextDataScript = doc.querySelector('script#__NEXT_DATA__');
+      
+      if (nextDataScript && nextDataScript.textContent) {
+        return JSON.parse(nextDataScript.textContent);
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Helper function to convert timestamp (milliseconds) to yyyy-mm-dd format
+  private formatDateFromTimestamp(timestamp: number): string {
+    if (!timestamp || isNaN(timestamp)) {
+      return '';
+    }
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   // Fetch book data function (with requestUrl)
   async fetchBookData(url: string, source: string): Promise<BookData | null> {
     try {
@@ -226,16 +253,12 @@ datepublished: "{{datepublished}}"
 
       // Extraction for each source (from original add-book.js, adapted for TS)
       if (source === 'taaghche') {
-        // Extract from JSON-LD
         const jsonLd = this.extractJsonLd(html);
         if (jsonLd) {
           const workExample = jsonLd.workExample || jsonLd;
-          
-          // Extract authors
           const authors = jsonLd.author || [];
           const author = this.concatenateAuthors(authors);
           
-          // Extract translators
           let translator = '';
           if (workExample.translator && Array.isArray(workExample.translator)) {
             translator = this.concatenateAuthors(workExample.translator);
@@ -251,43 +274,8 @@ datepublished: "{{datepublished}}"
             datepublished: workExample.datePublished || ''
           };
         }
-        
-        // Fallback to HTML selectors if JSON-LD not found
-        let pages: string = 'Unknown';
-        const infoElements = doc.querySelectorAll('div.moreInfo_info__BE9J3');
-        
-        Array.from(infoElements).forEach((el) => {
-          const keyElement = el.querySelector('p.moreInfo_key__WX6Qk');
-          if (keyElement) {
-            const keyText: string = keyElement.textContent?.trim() || '';
-            
-            if (/تعداد\s*صفحه/i.test(keyText)) {
-              const valueElement = el.querySelector('p.moreInfo_value__ctk9e');
-              if (valueElement) {
-                const persianNumbers: string[] = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                let valueText: string = valueElement.textContent?.trim() || '';
-                
-                persianNumbers.forEach((num, index) => {
-                  valueText = valueText.replace(new RegExp(num, 'g'), index.toString());
-                });
-                
-                const pageMatch = valueText.match(/\d+/);
-                if (pageMatch) {
-                  pages = pageMatch[0];
-                }
-              }
-            }
-          }
-        });
-        return {
-          title: doc.querySelector("h1")?.textContent?.trim() || "Unknown",
-          author: doc.querySelector("a[href*='/author/']")?.textContent?.trim() || "Unknown",
-          pages: pages,
-          cover: doc.querySelector("#book-image")?.getAttribute("src")?.replace(/\?.*$/, "") || "",
-          publisher: '',
-          translator: '',
-          datepublished: ''
-        };
+        return null;
+
       } else if (source === 'fidibo') {
         const titleElement = doc.querySelector('h1.book-main-box-detail-title');
         const authorRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
@@ -318,28 +306,164 @@ datepublished: "{{datepublished}}"
           const authors = jsonLd.author || [];
           const author = this.concatenateAuthors(authors);
           
+          // Extract publisher and datepublished from __NEXT_DATA__
+          let publisher = '';
+          let datepublished = '';
+          const nextData = this.extractNextData(html);
+          
+          if (nextData) {
+            // Search function to find BookDetails object
+            const searchForDetails = (obj: any, visited: Set<any> = new Set(), depth: number = 0): any => {
+              // Limit depth to prevent infinite recursion (max 20 levels)
+              if (depth > 20) {
+                return null;
+              }
+              
+              if (!obj || typeof obj !== 'object') {
+                return null;
+              }
+              
+              // Skip primitive wrappers and functions
+              if (obj instanceof Date || obj instanceof RegExp || typeof obj === 'function') {
+                return null;
+              }
+              
+              // Handle circular references
+              if (visited.has(obj)) {
+                return null;
+              }
+              visited.add(obj);
+              
+              // Skip arrays (but search their elements)
+              if (Array.isArray(obj)) {
+                for (const item of obj) {
+                  const result = searchForDetails(item, visited, depth + 1);
+                  if (result) {
+                    return result;
+                  }
+                }
+                return null;
+              }
+              
+              // Priority 1: Check if this object is a BookDetails object (most reliable marker)
+              if (obj.__typename === 'BookDetails') {
+                return obj;
+              }
+              
+              // Priority 2: Check if this object has both publisher and publicationTime (strong indicator)
+              if (obj.publisher !== undefined && obj.publicationTime !== undefined) {
+                // Additional validation: check for other BookDetails fields
+                if (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined) {
+                  return obj;
+                }
+              }
+              
+              // Priority 3: Check if this object has details with publisher/publicationTime
+              if (obj.details && typeof obj.details === 'object' && !visited.has(obj.details)) {
+                if (obj.details.__typename === 'BookDetails' || 
+                    (obj.details.publisher !== undefined && obj.details.publicationTime !== undefined)) {
+                  return obj.details;
+                }
+              }
+              
+              // Priority 4: Check if this object has publisher OR publicationTime with other BookDetails indicators
+              if ((obj.publisher !== undefined || obj.publicationTime !== undefined) &&
+                  (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined)) {
+                return obj;
+              }
+              
+              // Recursively search nested objects
+              for (const key in obj) {
+                // Skip certain keys that are unlikely to contain BookDetails
+                if (key === '__typename' || key === '__ref' || key === 'id' || key === 'key') {
+                  continue;
+                }
+                const result = searchForDetails(obj[key], visited, depth + 1);
+                if (result) {
+                  return result;
+                }
+              }
+              
+              return null;
+            };
+            
+            // Search in multiple locations within __NEXT_DATA__
+            let details: any = null;
+            
+            // Try apolloState first (common location)
+            const apolloState = nextData?.props?.pageProps?.apolloState;
+            if (apolloState) {
+              details = searchForDetails(apolloState);
+            }
+            
+            // If not found, try pageProps directly
+            if (!details && nextData?.props?.pageProps) {
+              details = searchForDetails(nextData.props.pageProps);
+            }
+            
+            // If not found, search the entire props structure
+            if (!details && nextData?.props) {
+              details = searchForDetails(nextData.props);
+            }
+            
+            // If still not found, search the entire nextData structure
+            if (!details) {
+              details = searchForDetails(nextData);
+            }
+            
+            // Final fallback: simple direct search for any object with both fields
+            if (!details) {
+              const simpleSearch = (obj: any, visited: Set<any> = new Set()): any => {
+                if (!obj || typeof obj !== 'object' || visited.has(obj)) {
+                  return null;
+                }
+                visited.add(obj);
+                
+                // Direct match: has both publisher and publicationTime
+                if (obj.publisher !== undefined && obj.publicationTime !== undefined) {
+                  return obj;
+                }
+                
+                // Search nested objects
+                if (Array.isArray(obj)) {
+                  for (const item of obj) {
+                    const result = simpleSearch(item, visited);
+                    if (result) return result;
+                  }
+                } else {
+                  for (const key in obj) {
+                    const result = simpleSearch(obj[key], visited);
+                    if (result) return result;
+                  }
+                }
+                return null;
+              };
+              details = simpleSearch(nextData);
+            }
+            
+            if (details) {
+              if (details.publisher) {
+                publisher = String(details.publisher).trim();
+              }
+              if (details.publicationTime) {
+                datepublished = this.formatDateFromTimestamp(details.publicationTime);
+              }
+            }
+          }
+          
           return {
             title: jsonLd.name || 'Unknown',
             author: author,
             pages: jsonLd.numberOfPages ? String(jsonLd.numberOfPages) : 'Unknown',
             cover: jsonLd.image || '',
-            // Goodreads doesn't have these fields in JSON-LD
-            publisher: '',
+            publisher: publisher,
             translator: '',
-            datepublished: ''
+            datepublished: datepublished
           };
         }
         
-        // Fallback to HTML selectors if JSON-LD not found
-        return {
-          title: doc.querySelector('h1[data-testid="bookTitle"]')?.textContent?.trim() || 'Unknown',
-          author: doc.querySelector('span[data-testid="name"]')?.textContent?.trim() || 'Unknown',
-          pages: doc.querySelector('p[data-testid="pagesFormat"]')?.textContent?.match(/\d+/)?.[0] || 'Unknown',
-          cover: doc.querySelector('img.ResponsiveImage')?.getAttribute('src') || '',
-          publisher: '',
-          translator: '',
-          datepublished: ''
-        };
+        // JSON-LD not found
+        return null;
       } else if (source === 'amazon') {
         const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || "Unknown";
         
