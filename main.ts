@@ -312,142 +312,43 @@ datepublished: "{{datepublished}}"
           const nextData = this.extractNextData(html);
           
           if (nextData) {
-            // Search function to find BookDetails object
-            const searchForDetails = (obj: any, visited: Set<any> = new Set(), depth: number = 0): any => {
-              // Limit depth to prevent infinite recursion (max 20 levels)
-              if (depth > 20) {
-                return null;
-              }
-              
-              if (!obj || typeof obj !== 'object') {
-                return null;
-              }
-              
-              // Skip primitive wrappers and functions
-              if (obj instanceof Date || obj instanceof RegExp || typeof obj === 'function') {
-                return null;
-              }
-              
-              // Handle circular references
-              if (visited.has(obj)) {
+            // Recursive search for BookDetails object
+            const findBookDetails = (obj: any, visited: Set<any> = new Set()): any => {
+              if (!obj || typeof obj !== 'object' || visited.has(obj) || 
+                  obj instanceof Date || obj instanceof RegExp || typeof obj === 'function') {
                 return null;
               }
               visited.add(obj);
               
-              // Skip arrays (but search their elements)
-              if (Array.isArray(obj)) {
-                for (const item of obj) {
-                  const result = searchForDetails(item, visited, depth + 1);
-                  if (result) {
-                    return result;
-                  }
-                }
-                return null;
+              // Check if this is a BookDetails object
+              const isBookDetails = obj.__typename === 'BookDetails' || 
+                (obj.publisher !== undefined && obj.publicationTime !== undefined && 
+                 (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined));
+              
+              if (isBookDetails) return obj;
+              if (obj.details && typeof obj.details === 'object') {
+                const detailsResult = findBookDetails(obj.details, visited);
+                if (detailsResult) return detailsResult;
               }
               
-              // Priority 1: Check if this object is a BookDetails object (most reliable marker)
-              if (obj.__typename === 'BookDetails') {
-                return obj;
+              // Search nested objects
+              const items = Array.isArray(obj) ? obj : Object.values(obj);
+              for (const item of items) {
+                const result = findBookDetails(item, visited);
+                if (result) return result;
               }
-              
-              // Priority 2: Check if this object has both publisher and publicationTime (strong indicator)
-              if (obj.publisher !== undefined && obj.publicationTime !== undefined) {
-                // Additional validation: check for other BookDetails fields
-                if (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined) {
-                  return obj;
-                }
-              }
-              
-              // Priority 3: Check if this object has details with publisher/publicationTime
-              if (obj.details && typeof obj.details === 'object' && !visited.has(obj.details)) {
-                if (obj.details.__typename === 'BookDetails' || 
-                    (obj.details.publisher !== undefined && obj.details.publicationTime !== undefined)) {
-                  return obj.details;
-                }
-              }
-              
-              // Priority 4: Check if this object has publisher OR publicationTime with other BookDetails indicators
-              if ((obj.publisher !== undefined || obj.publicationTime !== undefined) &&
-                  (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined)) {
-                return obj;
-              }
-              
-              // Recursively search nested objects
-              for (const key in obj) {
-                // Skip certain keys that are unlikely to contain BookDetails
-                if (key === '__typename' || key === '__ref' || key === 'id' || key === 'key') {
-                  continue;
-                }
-                const result = searchForDetails(obj[key], visited, depth + 1);
-                if (result) {
-                  return result;
-                }
-              }
-              
               return null;
             };
             
-            // Search in multiple locations within __NEXT_DATA__
-            let details: any = null;
-            
-            // Try apolloState first (common location)
-            const apolloState = nextData?.props?.pageProps?.apolloState;
-            if (apolloState) {
-              details = searchForDetails(apolloState);
-            }
-            
-            // If not found, try pageProps directly
-            if (!details && nextData?.props?.pageProps) {
-              details = searchForDetails(nextData.props.pageProps);
-            }
-            
-            // If not found, search the entire props structure
-            if (!details && nextData?.props) {
-              details = searchForDetails(nextData.props);
-            }
-            
-            // If still not found, search the entire nextData structure
-            if (!details) {
-              details = searchForDetails(nextData);
-            }
-            
-            // Final fallback: simple direct search for any object with both fields
-            if (!details) {
-              const simpleSearch = (obj: any, visited: Set<any> = new Set()): any => {
-                if (!obj || typeof obj !== 'object' || visited.has(obj)) {
-                  return null;
-                }
-                visited.add(obj);
-                
-                // Direct match: has both publisher and publicationTime
-                if (obj.publisher !== undefined && obj.publicationTime !== undefined) {
-                  return obj;
-                }
-                
-                // Search nested objects
-                if (Array.isArray(obj)) {
-                  for (const item of obj) {
-                    const result = simpleSearch(item, visited);
-                    if (result) return result;
-                  }
-                } else {
-                  for (const key in obj) {
-                    const result = simpleSearch(obj[key], visited);
-                    if (result) return result;
-                  }
-                }
-                return null;
-              };
-              details = simpleSearch(nextData);
-            }
+            // Search in common locations
+            const details = findBookDetails(nextData?.props?.pageProps?.apolloState) ||
+                          findBookDetails(nextData?.props?.pageProps) ||
+                          findBookDetails(nextData?.props) ||
+                          findBookDetails(nextData);
             
             if (details) {
-              if (details.publisher) {
-                publisher = String(details.publisher).trim();
-              }
-              if (details.publicationTime) {
-                datepublished = this.formatDateFromTimestamp(details.publicationTime);
-              }
+              publisher = details.publisher ? String(details.publisher).trim() : '';
+              datepublished = details.publicationTime ? this.formatDateFromTimestamp(details.publicationTime) : '';
             }
           }
           
