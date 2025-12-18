@@ -168,8 +168,7 @@ language: "{{language}}"
       taaghche: /taaghche\.com\/book\//i,
       fidibo: /fidibo\.com\/(books|book)\//i,
       goodreads: /goodreads\.com\/book\/show\//i,
-      amazon: /amazon\.com\/([a-zA-Z0-9-]+)\/dp\//i,
-      behkhaan: /behkhaan\.ir\/books\//i
+      amazon: /amazon\.com\/([a-zA-Z0-9-]+)\/dp\//i
     };
     const match = Object.entries(patterns).find(([_, pattern]) => pattern.test(url));
     return match ? match[0] : null;
@@ -472,48 +471,6 @@ language: "{{language}}"
           translator: translator,
           datepublished: datepublished,
           language: language,
-          url: canonicalUrl
-        };
-      } else if (source === 'behkhaan') {
-        const title: string = doc.querySelector('h1#title')?.textContent?.trim() || '';
-      
-        const authorElement = doc.querySelector('div.w-full.my-2 span.text-sm.md\\:text-base.text-gray-500');
-        const author: string = authorElement?.textContent?.trim() || '';
-        
-        const pagesLabel = Array.from(doc.querySelectorAll('span.text-xs.md\\:text-sm.text-gray-500'))
-          .find(el => el.textContent?.includes("تعداد صفحات"));
-        let pages: string = '';
-        if (pagesLabel) {
-          const pagesElement = pagesLabel.parentElement?.nextElementSibling;
-          if (pagesElement) {
-            const persianNumbers: string[] = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-            let pagesText: string = pagesElement.textContent?.trim() || '';
-            persianNumbers.forEach((num, index) => {
-              pagesText = pagesText.replace(new RegExp(num, 'g'), index.toString());
-            });
-            const pageMatch = pagesText.match(/\d+/);
-            pages = pageMatch ? pageMatch[0] : '';
-          }
-        }
-        
-        let cover: string = doc.querySelector('img.w-full.h-full.object-cover.rounded-lg.cursor-pointer')?.getAttribute("src") || "";
-        if (cover && !cover.startsWith("http")) {
-          cover = `https://behkhaan.ir${cover}`;
-        }
-
-        // Behkhaan: fall back to requested URL (or canonical if present)
-        const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-        const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
-      
-        return {
-          title: title || '',
-          author: author,
-          pages: pages,
-          cover: cover,
-          publisher: '',
-          translator: '',
-          datepublished: '',
-          language: '',
           url: canonicalUrl
         };
       }
