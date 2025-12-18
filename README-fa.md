@@ -26,6 +26,8 @@
 | تصویر کتاب  | {{cover}}  |
 | ناشر  | {{publisher}}  |
 | سال انتشار  | {{datepublished}}  |
+| لینک  | {{url}}  |
+| زبان  | {{language}}  |
 
 
 <br>
