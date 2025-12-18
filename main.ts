@@ -24,6 +24,7 @@ interface BookData {
   translator?: string;
   datepublished?: string;
   language?: string;
+  url?: string;
 }
 
 export default class AddBookPlugin extends Plugin {
@@ -114,6 +115,7 @@ pages: {{pages}}
 cover: "{{cover}}"
 publisher: "{{publisher}}"
 datepublished: "{{datepublished}}"
+url: "{{url}}"
 language: "{{language}}"
 ---
 
@@ -129,6 +131,7 @@ language: "{{language}}"
       .replace(/{{publisher}}/g, bookData.publisher || '')
       .replace(/{{translator}}/g, bookData.translator || '')
       .replace(/{{datepublished}}/g, bookData.datepublished || '')
+      .replace(/{{url}}/g, bookData.url || '')
       .replace(/{{language}}/g, bookData.language || '');
     
     // Validate save folder path if specified (skip validation for root folder)
@@ -266,6 +269,10 @@ language: "{{language}}"
           if (workExample.translator && Array.isArray(workExample.translator)) {
             translator = this.concatenateAuthors(workExample.translator);
           }
+
+          // Extract canonical URL
+          const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+          const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
           return {
             title: jsonLd.name || 'Unknown',
@@ -275,7 +282,8 @@ language: "{{language}}"
             publisher: workExample.publisher?.name || '',
             translator: translator || '',
             datepublished: workExample.datePublished || '',
-            language: workExample.inLanguage || ''
+            language: workExample.inLanguage || '',
+            url: canonicalUrl
           };
         }
         return null;
@@ -294,6 +302,9 @@ language: "{{language}}"
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("تاریخ انتشار"));
         const languageRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("زبان"));
+
+        // Fidibo does not expose canonical or og:url; fall back to the requested URL
+        const fidiboUrl = url;
         
         return {
           title: titleElement?.textContent?.trim() || "Unknown",
@@ -303,7 +314,8 @@ language: "{{language}}"
           publisher: publisherRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
           translator: translatorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
           datepublished: datePublishedRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
-          language: languageRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || ''
+          language: languageRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
+          url: fidiboUrl
         };
       } else if (source === 'goodreads') {
         // Extract from JSON-LD
@@ -358,6 +370,10 @@ language: "{{language}}"
               datepublished = details.publicationTime ? this.formatDateFromTimestamp(details.publicationTime) : '';
             }
           }
+
+          // Extract canonical URL
+          const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+          const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
           return {
             title: jsonLd.name || 'Unknown',
@@ -367,7 +383,8 @@ language: "{{language}}"
             publisher: publisher,
             translator: '',
             datepublished: datepublished,
-            language: jsonLd.inLanguage || ''
+            language: jsonLd.inLanguage || '',
+            url: canonicalUrl
           };
         }
         
@@ -441,6 +458,10 @@ language: "{{language}}"
         // Extract language
         const languageElement = doc.querySelector('#rpi-attribute-language .rpi-attribute-value span');
         const language: string = languageElement?.textContent?.trim() || '';
+
+        // Extract canonical URL
+        const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+        const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
         
         return {
           title: title,
@@ -450,7 +471,8 @@ language: "{{language}}"
           publisher: publisher,
           translator: translator,
           datepublished: datepublished,
-          language: language
+          language: language,
+          url: canonicalUrl
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
@@ -478,6 +500,10 @@ language: "{{language}}"
         if (cover && !cover.startsWith("http")) {
           cover = `https://behkhaan.ir${cover}`;
         }
+
+        // Behkhaan: fall back to requested URL (or canonical if present)
+        const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+        const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
       
         return {
           title: title,
@@ -487,7 +513,8 @@ language: "{{language}}"
           publisher: '',
           translator: '',
           datepublished: '',
-          language: ''
+          language: '',
+          url: canonicalUrl
         };
       }
 
