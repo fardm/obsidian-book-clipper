@@ -204,7 +204,7 @@ language: "{{language}}"
   // Helper function to concatenate author names
   private concatenateAuthors(authors: any[]): string {
     if (!authors || !Array.isArray(authors) || authors.length === 0) {
-      return 'Unknown';
+      return '';
     }
     return authors
       .map((author: any) => {
@@ -216,7 +216,7 @@ language: "{{language}}"
         return '';
       })
       .filter((name: string) => name.trim() !== '')
-      .join(', ') || 'Unknown';
+      .join(', ') || '';
   }
 
   // Helper function to extract __NEXT_DATA__ from HTML
@@ -275,9 +275,9 @@ language: "{{language}}"
           const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
           return {
-            title: jsonLd.name || 'Unknown',
+            title: jsonLd.name || '',
             author: author,
-            pages: workExample.numberOfPages ? String(workExample.numberOfPages) : 'Unknown',
+            pages: workExample.numberOfPages ? String(workExample.numberOfPages) : '',
             cover: jsonLd.image || '',
             publisher: workExample.publisher?.name || '',
             translator: translator || '',
@@ -307,10 +307,10 @@ language: "{{language}}"
         const fidiboUrl = url;
         
         return {
-          title: titleElement?.textContent?.trim() || "Unknown",
-          author: authorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || "Unknown",
-          pages: pagesRow?.querySelector('div.book-vl-rows-item-subtitle')?.textContent?.match(/\d+/)?.[0] || "Unknown",
-          cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || "",
+          title: titleElement?.textContent?.trim() || '',
+          author: authorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
+          pages: pagesRow?.querySelector('div.book-vl-rows-item-subtitle')?.textContent?.match(/\d+/)?.[0] || '',
+          cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || '',
           publisher: publisherRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
           translator: translatorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
           datepublished: datePublishedRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
@@ -376,9 +376,9 @@ language: "{{language}}"
           const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
           return {
-            title: jsonLd.name || 'Unknown',
+            title: jsonLd.name || '',
             author: author,
-            pages: jsonLd.numberOfPages ? String(jsonLd.numberOfPages) : 'Unknown',
+            pages: jsonLd.numberOfPages ? String(jsonLd.numberOfPages) : '',
             cover: jsonLd.image || '',
             publisher: publisher,
             translator: '',
@@ -391,7 +391,7 @@ language: "{{language}}"
         // JSON-LD not found
         return null;
       } else if (source === 'amazon') {
-        const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || "Unknown";
+        const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || '';
         
         // Extract authors and translators from bylineInfo
         const bylineInfo = doc.querySelector('div#bylineInfo');
@@ -421,20 +421,20 @@ language: "{{language}}"
         }
         
         // Fallback to old method if bylineInfo not found
-        let author: string = authors.length > 0 ? authors.join(', ') : "Unknown";
-        if (author === "Unknown") {
+        let author: string = authors.length > 0 ? authors.join(', ') : '';
+        if (author === '') {
           const authorElement = doc.querySelector('span.author a.a-link-normal');
-          author = authorElement?.textContent?.trim() || "Unknown";
+          author = authorElement?.textContent?.trim() || '';
         }
         
         const translator: string = translators.length > 0 ? translators.join(', ') : '';
         
         const pagesElement = doc.querySelector('div.rpi-attribute-value span');
-        let pages: string = "Unknown";
+        let pages: string = '';
         if (pagesElement) {
           const pagesText: string = pagesElement.textContent?.trim() || '';
           const pageMatch = pagesText.match(/\d+/);
-          pages = pageMatch ? pageMatch[0] : "Unknown";
+          pages = pageMatch ? pageMatch[0] : '';
         }
         
         const coverElement = doc.querySelector('img#landingImage');
@@ -464,7 +464,7 @@ language: "{{language}}"
         const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
         
         return {
-          title: title,
+          title: title || '',
           author: author,
           pages: pages,
           cover: cover,
@@ -475,14 +475,14 @@ language: "{{language}}"
           url: canonicalUrl
         };
       } else if (source === 'behkhaan') {
-        const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
+        const title: string = doc.querySelector('h1#title')?.textContent?.trim() || '';
       
         const authorElement = doc.querySelector('div.w-full.my-2 span.text-sm.md\\:text-base.text-gray-500');
-        const author: string = authorElement?.textContent?.trim() || "Unknown";
+        const author: string = authorElement?.textContent?.trim() || '';
         
         const pagesLabel = Array.from(doc.querySelectorAll('span.text-xs.md\\:text-sm.text-gray-500'))
           .find(el => el.textContent?.includes("تعداد صفحات"));
-        let pages: string = "Unknown";
+        let pages: string = '';
         if (pagesLabel) {
           const pagesElement = pagesLabel.parentElement?.nextElementSibling;
           if (pagesElement) {
@@ -492,7 +492,7 @@ language: "{{language}}"
               pagesText = pagesText.replace(new RegExp(num, 'g'), index.toString());
             });
             const pageMatch = pagesText.match(/\d+/);
-            pages = pageMatch ? pageMatch[0] : "Unknown";
+            pages = pageMatch ? pageMatch[0] : '';
           }
         }
         
@@ -506,7 +506,7 @@ language: "{{language}}"
         const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
       
         return {
-          title: title,
+          title: title || '',
           author: author,
           pages: pages,
           cover: cover,
