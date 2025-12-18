@@ -23,6 +23,7 @@ interface BookData {
   publisher?: string;
   translator?: string;
   datepublished?: string;
+  language?: string;
 }
 
 export default class AddBookPlugin extends Plugin {
@@ -113,6 +114,7 @@ pages: {{pages}}
 cover: "{{cover}}"
 publisher: "{{publisher}}"
 datepublished: "{{datepublished}}"
+language: "{{language}}"
 ---
 
 `;
@@ -126,7 +128,8 @@ datepublished: "{{datepublished}}"
       .replace(/{{cover}}/g, bookData.cover)
       .replace(/{{publisher}}/g, bookData.publisher || '')
       .replace(/{{translator}}/g, bookData.translator || '')
-      .replace(/{{datepublished}}/g, bookData.datepublished || '');
+      .replace(/{{datepublished}}/g, bookData.datepublished || '')
+      .replace(/{{language}}/g, bookData.language || '');
     
     // Validate save folder path if specified (skip validation for root folder)
     if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
@@ -271,7 +274,8 @@ datepublished: "{{datepublished}}"
             cover: jsonLd.image || '',
             publisher: workExample.publisher?.name || '',
             translator: translator || '',
-            datepublished: workExample.datePublished || ''
+            datepublished: workExample.datePublished || '',
+            language: workExample.inLanguage || ''
           };
         }
         return null;
@@ -288,6 +292,8 @@ datepublished: "{{datepublished}}"
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("مترجم"));
         const datePublishedRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("تاریخ انتشار"));
+        const languageRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
+          .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("زبان"));
         
         return {
           title: titleElement?.textContent?.trim() || "Unknown",
@@ -296,7 +302,8 @@ datepublished: "{{datepublished}}"
           cover: doc.querySelector('img.book-main-box-img')?.getAttribute("src")?.split('?')[0] || "",
           publisher: publisherRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
           translator: translatorRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
-          datepublished: datePublishedRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || ''
+          datepublished: datePublishedRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || '',
+          language: languageRow?.querySelector('a.book-vl-rows-item-subtitle, div.book-vl-rows-item-subtitle')?.textContent?.trim() || ''
         };
       } else if (source === 'goodreads') {
         // Extract from JSON-LD
@@ -359,7 +366,8 @@ datepublished: "{{datepublished}}"
             cover: jsonLd.image || '',
             publisher: publisher,
             translator: '',
-            datepublished: datepublished
+            datepublished: datepublished,
+            language: jsonLd.inLanguage || ''
           };
         }
         
@@ -430,6 +438,10 @@ datepublished: "{{datepublished}}"
         const datePublishedElement = doc.querySelector('#rpi-attribute-book_details-publication_date .rpi-attribute-value span');
         const datepublished: string = datePublishedElement?.textContent?.trim() || '';
         
+        // Extract language
+        const languageElement = doc.querySelector('#rpi-attribute-language .rpi-attribute-value span');
+        const language: string = languageElement?.textContent?.trim() || '';
+        
         return {
           title: title,
           author: author,
@@ -437,7 +449,8 @@ datepublished: "{{datepublished}}"
           cover: cover,
           publisher: publisher,
           translator: translator,
-          datepublished: datepublished
+          datepublished: datepublished,
+          language: language
         };
       } else if (source === 'behkhaan') {
         const title: string = doc.querySelector('h1#title')?.textContent?.trim() || "Unknown";
@@ -473,7 +486,8 @@ datepublished: "{{datepublished}}"
           cover: cover,
           publisher: '',
           translator: '',
-          datepublished: ''
+          datepublished: '',
+          language: ''
         };
       }
 
