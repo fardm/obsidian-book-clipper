@@ -368,8 +368,41 @@ datepublished: "{{datepublished}}"
       } else if (source === 'amazon') {
         const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || "Unknown";
         
-        const authorElement = doc.querySelector('span.author a.a-link-normal');
-        const author: string = authorElement?.textContent?.trim() || "Unknown";
+        // Extract authors and translators from bylineInfo
+        const bylineInfo = doc.querySelector('div#bylineInfo');
+        const authors: string[] = [];
+        const translators: string[] = [];
+        
+        if (bylineInfo) {
+          const authorSpans = bylineInfo.querySelectorAll('span.author');
+          authorSpans.forEach((span) => {
+            const nameElement = span.querySelector('a.a-link-normal');
+            const contributionElement = span.querySelector('span.contribution span.a-color-secondary');
+            
+            if (nameElement) {
+              const name = nameElement.textContent?.trim() || '';
+              const contribution = contributionElement?.textContent?.trim() || '';
+              
+              if (name) {
+                if (contribution.includes('Translator')) {
+                  translators.push(name);
+                } else if (contribution.includes('Author') || contribution === '') {
+                  // Include as author if marked as Author or if no contribution specified (defaults to author)
+                  authors.push(name);
+                }
+              }
+            }
+          });
+        }
+        
+        // Fallback to old method if bylineInfo not found
+        let author: string = authors.length > 0 ? authors.join(', ') : "Unknown";
+        if (author === "Unknown") {
+          const authorElement = doc.querySelector('span.author a.a-link-normal');
+          author = authorElement?.textContent?.trim() || "Unknown";
+        }
+        
+        const translator: string = translators.length > 0 ? translators.join(', ') : '';
         
         const pagesElement = doc.querySelector('div.rpi-attribute-value span');
         let pages: string = "Unknown";
@@ -403,7 +436,7 @@ datepublished: "{{datepublished}}"
           pages: pages,
           cover: cover,
           publisher: publisher,
-          translator: '', // Not available on Amazon
+          translator: translator,
           datepublished: datepublished
         };
       } else if (source === 'behkhaan') {
