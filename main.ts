@@ -1,12 +1,10 @@
-// main.ts
-
 import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, requestUrl, TFile, TFolder, normalizePath, AbstractInputSuggest, TextComponent, TAbstractFile } from 'obsidian';
 
 // Plugin settings
 interface AddBookSettings {
-  templatePath: string;  // Path to template file (e.g., 'templates/book-template.md')
-  saveFolder: string;    // Path to save folder (e.g., 'Books/')
-  openAfterCreate: boolean; // Whether to open the note after creation
+  templatePath: string;
+  saveFolder: string;
+  openAfterCreate: boolean;
 }
 
 const DEFAULT_SETTINGS: AddBookSettings = {
@@ -51,7 +49,6 @@ export default class AddBookPlugin extends Plugin {
   }
 
   onunload(): void {
-    // Cleanup if needed
   }
 
   async loadSettings() {
@@ -134,12 +131,10 @@ language: "{{language}}"
       .replace(/{{url}}/g, bookData.url || '')
       .replace(/{{language}}/g, bookData.language || '');
     
-    // Validate save folder path if specified (skip validation for root folder)
+    // Validate save folder path if specified
     if (this.settings.saveFolder && !this.isRootFolder(this.settings.saveFolder)) {
-      // Normalize and remove trailing slash
       const folderPath = normalizePath(this.settings.saveFolder.replace(/\/$/, ''));
       
-      // Check if the specified folder exists
       const folder = this.app.vault.getAbstractFileByPath(folderPath);
       if (!folder || !(folder instanceof TFolder)) {
         new Notice('Save folder not found. Please set a valid path in settings.', 5000);
@@ -183,14 +178,12 @@ language: "{{language}}"
       for (const script of Array.from(jsonLdScripts)) {
         try {
           const jsonData = JSON.parse(script.textContent || '');
-          // Check if it's a Book or Product type
           if (jsonData['@type'] === 'Book' || 
               (Array.isArray(jsonData['@type']) && 
                (jsonData['@type'].includes('Book') || jsonData['@type'].includes('Product')))) {
             return jsonData;
           }
         } catch (e) {
-          // Skip invalid JSON
           continue;
         }
       }
@@ -200,7 +193,6 @@ language: "{{language}}"
     }
   }
 
-  // Helper function to concatenate author names
   private concatenateAuthors(authors: any[]): string {
     if (!authors || !Array.isArray(authors) || authors.length === 0) {
       return '';
@@ -233,7 +225,7 @@ language: "{{language}}"
     }
   }
 
-  // Helper function to convert timestamp (milliseconds) to yyyy-mm-dd format
+  // Helper function to convert timestamp to yyyy-mm-dd format
   private formatDateFromTimestamp(timestamp: number): string {
     if (!timestamp || isNaN(timestamp)) {
       return '';
@@ -256,7 +248,6 @@ language: "{{language}}"
       const html: string = response.text;
       const doc: Document = new DOMParser().parseFromString(html, 'text/html');
 
-      // Extraction for each source (from original add-book.js, adapted for TS)
       if (source === 'taaghche') {
         const jsonLd = this.extractJsonLd(html);
         if (jsonLd) {
@@ -269,7 +260,6 @@ language: "{{language}}"
             translator = this.concatenateAuthors(workExample.translator);
           }
 
-          // Extract canonical URL
           const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
           const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
@@ -301,8 +291,6 @@ language: "{{language}}"
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("تاریخ انتشار"));
         const languageRow = Array.from(doc.querySelectorAll('tr.book-vl-rows-item'))
           .find(row => row.querySelector('td.book-vl-rows-item-title')?.textContent?.includes("زبان"));
-
-        // Fidibo does not expose canonical or og:url; fall back to the requested URL
         const fidiboUrl = url;
         
         return {
@@ -317,20 +305,16 @@ language: "{{language}}"
           url: fidiboUrl
         };
       } else if (source === 'goodreads') {
-        // Extract from JSON-LD
         const jsonLd = this.extractJsonLd(html);
         if (jsonLd) {
-          // Extract authors
           const authors = jsonLd.author || [];
           const author = this.concatenateAuthors(authors);
           
-          // Extract publisher and datepublished from __NEXT_DATA__
           let publisher = '';
           let datepublished = '';
           const nextData = this.extractNextData(html);
           
           if (nextData) {
-            // Recursive search for BookDetails object
             const findBookDetails = (obj: any, visited: Set<any> = new Set()): any => {
               if (!obj || typeof obj !== 'object' || visited.has(obj) || 
                   obj instanceof Date || obj instanceof RegExp || typeof obj === 'function') {
@@ -338,7 +322,6 @@ language: "{{language}}"
               }
               visited.add(obj);
               
-              // Check if this is a BookDetails object
               const isBookDetails = obj.__typename === 'BookDetails' || 
                 (obj.publisher !== undefined && obj.publicationTime !== undefined && 
                  (obj.format !== undefined || obj.numPages !== undefined || obj.asin !== undefined));
@@ -349,7 +332,6 @@ language: "{{language}}"
                 if (detailsResult) return detailsResult;
               }
               
-              // Search nested objects
               const items = Array.isArray(obj) ? obj : Object.values(obj);
               for (const item of items) {
                 const result = findBookDetails(item, visited);
@@ -358,7 +340,6 @@ language: "{{language}}"
               return null;
             };
             
-            // Search in common locations
             const details = findBookDetails(nextData?.props?.pageProps?.apolloState) ||
                           findBookDetails(nextData?.props?.pageProps) ||
                           findBookDetails(nextData?.props) ||
@@ -370,7 +351,6 @@ language: "{{language}}"
             }
           }
 
-          // Extract canonical URL
           const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
           const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
           
@@ -387,12 +367,10 @@ language: "{{language}}"
           };
         }
         
-        // JSON-LD not found
         return null;
       } else if (source === 'amazon') {
         const title: string = doc.querySelector('span#productTitle')?.textContent?.trim() || '';
         
-        // Extract authors and translators from bylineInfo
         const bylineInfo = doc.querySelector('div#bylineInfo');
         const authors: string[] = [];
         const translators: string[] = [];
@@ -411,7 +389,6 @@ language: "{{language}}"
                 if (contribution.includes('Translator')) {
                   translators.push(name);
                 } else if (contribution.includes('Author') || contribution === '') {
-                  // Include as author if marked as Author or if no contribution specified (defaults to author)
                   authors.push(name);
                 }
               }
@@ -425,9 +402,7 @@ language: "{{language}}"
           const authorElement = doc.querySelector('span.author a.a-link-normal');
           author = authorElement?.textContent?.trim() || '';
         }
-        
         const translator: string = translators.length > 0 ? translators.join(', ') : '';
-        
         const pagesElement = doc.querySelector('div.rpi-attribute-value span');
         let pages: string = '';
         if (pagesElement) {
@@ -435,7 +410,6 @@ language: "{{language}}"
           const pageMatch = pagesText.match(/\d+/);
           pages = pageMatch ? pageMatch[0] : '';
         }
-        
         const coverElement = doc.querySelector('img#landingImage');
         let cover: string = "";
         if (coverElement) {
@@ -445,20 +419,12 @@ language: "{{language}}"
             cover = highResImage;
           }
         }
-        
-        // Extract publisher
         const publisherElement = doc.querySelector('#rpi-attribute-book_details-publisher .rpi-attribute-value span');
         const publisher: string = publisherElement?.textContent?.trim() || '';
-        
-        // Extract publication date
         const datePublishedElement = doc.querySelector('#rpi-attribute-book_details-publication_date .rpi-attribute-value span');
         const datepublished: string = datePublishedElement?.textContent?.trim() || '';
-        
-        // Extract language
         const languageElement = doc.querySelector('#rpi-attribute-language .rpi-attribute-value span');
         const language: string = languageElement?.textContent?.trim() || '';
-
-        // Extract canonical URL
         const canonicalLink = doc.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
         const canonicalUrl = canonicalLink?.getAttribute('href')?.trim() || url;
         
@@ -484,18 +450,14 @@ language: "{{language}}"
 
   // Unique filename function (adapted)
   getUniqueFilename(baseName: string, folder: string): string {
-    // Normalize folder path and remove trailing slash
     const normalizedFolder = folder ? normalizePath(folder.replace(/\/$/, '')) : '';
     let counter: number = 1;
     let newName: string = baseName;
     
-    // Filter files that are exactly in the target folder (not in subfolders)
     const files = this.app.vault.getMarkdownFiles().filter(f => {
       if (normalizedFolder === '') {
-        // For root folder, check if file's parent is the root folder
         return f.parent === this.app.vault.getRoot();
       } else {
-        // For specific folder, check if parent path matches exactly
         return f.parent?.path === normalizedFolder;
       }
     });
@@ -559,7 +521,6 @@ class UrlInputModal extends Modal {
 
   onClose() {
     this.contentEl.empty();
-    // Resolve with empty string if modal is closed without submitting
     if (this.resolve) {
       this.resolve('');
       this.resolve = null;
