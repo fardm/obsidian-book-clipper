@@ -20,17 +20,19 @@ This plugin imports book information from these websites into Obsidian:
 
 **Available Variables**
 
-| data   | Variable           |
-| ------ | ------------------ |
-| title  | {{title}}  |
-| author | {{author}} |
-| translatro  | {{translator}}  |
-| pages  | {{pages}}  |
-| cover  | {{cover}}  |
-| publisher  | {{publisher}}  |
-| datepublished  | {{datepublished}}  |
-| url  | {{url}}  |
-| language  | {{language}}  |
+- {{title}}
+- {{author}}
+- {{translator}}
+- {{pages}}
+- {{cover}}
+- {{publisher}}
+- {{datepublished}}
+- {{url}}
+- {{language}}
+
+<br>
+
+⚠️ On Goodreads `{{translator}}` isn’t returned because authors and translators aren’t properly separated in the JSON-LD we use for web scraping. As a result, both end up in the `author` field.
 
 
 <br>
@@ -49,7 +51,7 @@ This plugin imports book information from these websites into Obsidian:
 4. In plugin settings:
     - **Template note path** → `templates/book-template`
     - **Save folder path** → `my books`
-5. Open the **Command Palette** and run `add book from url`.
+5. Open the **Command Palette** and run `Add book from link`.
 6. Enter the book link and confirm.
 
 https://github.com/user-attachments/assets/4664c45e-e177-40b9-aa0d-d0c7f0bc8a60
@@ -61,7 +63,7 @@ This plugin is designed solely for personal and non-commercial use. The develope
 
 <br>
 
-## ❤️ Support
+## ☕ Support
 This project is offered for free so everyone can use it without restrictions.  
 If you found this tool useful, you can support its continuous development and improvement through donations.
 
