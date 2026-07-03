@@ -166,7 +166,7 @@ language: "{{language}}"
       taaghche: /taaghche\.com\/book\//i,
       fidibo: /fidibo\.com\/(books|book)\//i,
       goodreads: /goodreads\.com\/book\/show\//i,
-      amazon: /amazon\.com\/([a-zA-Z0-9-]+)\/dp\//i
+      amazon: /amazon\.com\/[^/]+\/dp\//i
     };
     const match = Object.entries(patterns).find(([_, pattern]) => pattern.test(url));
     return match ? match[0] : null;
